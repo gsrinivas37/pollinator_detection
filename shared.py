@@ -286,4 +286,4 @@ def compute_accuracy(root_dir, model_path):
         else:
             wrong_cnt = 0
 
-        print(f"Accuracy for class {class_idx} is: {correct_cnt/(correct_cnt+wrong_cnt)}")
+        print(f"Accuracy for class {class_idx} (Count: {correct_cnt+wrong_cnt}) is: {correct_cnt/(correct_cnt+wrong_cnt)}")
