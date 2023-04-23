@@ -27,7 +27,7 @@ class Classifier:
             self.model = self.model.to(device)
 
 
-    def run(self, image):
+    def run(self, image_path):
         """
         Args:
             image: Path to the image file
@@ -35,13 +35,21 @@ class Classifier:
         Returns:
             Whether pollinator exists in the image or not
         """
+        image = Image.open(image_path).convert('RGB')  # load the image using PIL
+        transform = transforms.Compose([
+            # transforms.RandomCrop(32, padding=4),
+            # transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+        image = transform(image)
         image = image.to(self.device)
         if len(image.shape) == 3:
             image = image.unsqueeze(dim=0)
 
         with torch.no_grad():# no updation of gradient based on the validation data
             out = self.model(image)
-        return out
+        return torch.argmax(out)
 
 if __name__ == "__main__":
     model_path = '../models/vgg_model.pt'
@@ -50,14 +58,6 @@ if __name__ == "__main__":
     type = 'vgg'
 
     image_path = 'C:/Gaurav/Code/DL/pollinator-project/Pollinators-18_COCO_640x640_aug_null/test/Copy-of-motion_2022-06-12_17_29_49_91_mp4-32_jpg.rf.d271f0928f7284095faf4b9624181a86.jpg'
-    image = Image.open(image_path).convert('RGB')  # load the image using PIL
-    transform = transforms.Compose([
-        # transforms.RandomCrop(32, padding=4),
-        # transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
-    image = transform(image)  # transform image
-
+ # transform image
     classifier = Classifier(model_path, type, device, num_classes)
-    print(classifier.run(image))
+    print(classifier.run(image_path))
