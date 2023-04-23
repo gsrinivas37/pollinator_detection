@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import time
-from models.Detector import Detector
+from inference.Detector import Detector
 
 
 class EfficientDetector(Detector):
