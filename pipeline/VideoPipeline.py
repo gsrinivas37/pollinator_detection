@@ -2,6 +2,8 @@ import os.path
 from utils.split_video import split_video
 import shutil
 
+DEBUG = True
+
 class VideoPipeline:
     def __init__(self, classifier, detector, fps=3, threshold=0.7):
         self.classifier = classifier
@@ -43,7 +45,12 @@ class VideoPipeline:
 
         pollinators = []
         for frame in self.frames:
+            if DEBUG:
+                print(f'Running detection on {frame}')
             bounding_boxes = self.detector.run(frame)
+            if DEBUG:
+                print(f"Detection are : {bounding_boxes}")
+
             result = self.is_pollinating(bounding_boxes)
             if result is not None:
                 pollinators.append(result)
