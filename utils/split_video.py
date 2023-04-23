@@ -3,10 +3,8 @@ This script splits a video into frames at the specified frame rate, resizes thes
 to specified dimensions, and saves these to the specified directory.
 """
 
-import sys
 import os
 import cv2
-
 
 def split_video(vidpath, output_dir, desired_fps=4, width=640, height=640):
     vcdata = cv2.VideoCapture(vidpath)
@@ -48,8 +46,11 @@ def split_video(vidpath, output_dir, desired_fps=4, width=640, height=640):
 
     [_, vidname] = os.path.split(vidpath)
     [root_fn, _] = os.path.splitext(vidname)
+    frames = []
     for count, frame in enumerate(frame_array):
         filename = root_fn + "_" + str(count) + ".jpg"
         output_path = os.path.join(output_dir, filename)
 
         cv2.imwrite(output_path, frame)
+        frames.append(output_path)
+    return frames

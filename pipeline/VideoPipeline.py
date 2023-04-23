@@ -1,3 +1,6 @@
+import os.path
+from utils.split_video import split_video
+import shutil
 
 class VideoPipeline:
     def __init__(self, classifier, detector, fps=3, threshold=0.7):
@@ -20,8 +23,11 @@ class VideoPipeline:
         return False
 
     def generate_frames(self, video):
-        # TODO: Populate self.frames
-        pass
+        if os.path.exists(self.tmp_dir):
+            shutil.rmtree(self.tmp_dir)
+        os.mkdir(self.tmp_dir)
+
+        self.frames = split_video(video, self.tmp_dir)
 
     def is_pollinating(self, bounding_boxes):
         pollinator = None
