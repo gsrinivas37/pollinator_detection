@@ -46,3 +46,9 @@ class EfficientDetector(Detector):
             else:
                 break
         return bounding_boxes
+
+if __name__ == "__main__":
+    image_path = '/Users/gsrinivas37/work/test_img/one.jpg'
+    detector = EfficientDetector('../models/saved_model')
+    result = detector.run(image_path)
+    print(result)
