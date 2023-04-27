@@ -7,23 +7,26 @@ from inference.Yolov7Detector import YoloV7Detector
 from pipeline.VideoPipeline import VideoPipeline
 
 
-def run_pollinator_detection(input_dir, classifier_type='resnet', detector_type='yolo', output_file='results.csv'):
-    model_path = None
-
-    if classifier_type == 'resnet':
-        model_path = 'models/resnet_model.pt'
-    if classifier_type == 'vgg':
-        model_path = 'models/vgg_model.pt'
+def run_pollinator_detection(input_dir, detector_type='yolo', device='cpu', output_file='results.csv'):
+    classifier_type_1 = 'resnet'
+    model_path_1 = 'models/resnet_model.pt'
+    classifier_type_2 = 'vgg'
+    model_path_2 = 'models/vgg_model.pt'
 
     detector = None
 
     if detector_type == 'yolo':
-        detector = YoloV7Detector('models/yolov7.pt', 'models/yolov7')
+        detector_device = device
+        if device =='cuda':
+            detector_device = 0
+        detector = YoloV7Detector('C:/Gaurav/Code/DL/pollinator_detection/models/yolov7.pt', 'C:/Gaurav/Code/DL/pollinator_detection/models/yolov7', device=detector_device)
     if detector_type == 'efficient_det':
         detector = EfficientDetector('models/saved_model')
 
-    classifier = Classifier(model_path, classifier_type)
-    pipeline = VideoPipeline(classifier, detector)
+    classifier_1 = Classifier(model_path_1, classifier_type_1,device=device)
+    classifier_2 = Classifier(model_path_2, classifier_type_2,device=device)
+
+    pipeline = VideoPipeline(classifier_1, classifier_2, detector)
 
     results = ""
     for video in os.listdir(input_dir):
@@ -36,7 +39,7 @@ def run_pollinator_detection(input_dir, classifier_type='resnet', detector_type=
         fd.write(results)
 
 
-run_pollinator_detection('/Users/gsrinivas37/work/test_video')
+run_pollinator_detection('C:/Gaurav/Code/DL/test video', detector_type='yolo', device='cpu', output_file='results.csv')
 
 # if __name__ == "__main__":
 #     if len(sys.argv) != 6:
