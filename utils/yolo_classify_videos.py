@@ -1,4 +1,6 @@
 """
+# Credits: https://github.com/msmccor100/Orchid-Pollinator-Detection
+
 This script takes a directory of yolo predicted labels for image frames taken from videos and classifies the
 videos according to the pollinator classes they contain and whether they pollinate an inflorescence. It 
 assumes yolo formated label files have names of the following form:
