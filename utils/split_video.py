@@ -1,4 +1,6 @@
 """
+# Credits: https://github.com/msmccor100/Orchid-Pollinator-Detection
+
 This script splits a video into frames at the specified frame rate, resizes these
 to specified dimensions, and saves these to the specified directory.
 """
