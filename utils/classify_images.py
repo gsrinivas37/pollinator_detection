@@ -62,8 +62,9 @@ def classify_images(labels_dir: str, images_dir: str, classifier_1, classifier_2
                     if len(line) < 6:
                         continue
                     label_info = line.split(' ')
-                    if len(label_info) != 5:
+                    if len(label_info) < 5:
                         continue
+
                     cls = int(label_info[0])
 
                     if cls != 5:
@@ -89,7 +90,7 @@ def classify_images(labels_dir: str, images_dir: str, classifier_1, classifier_2
                     if len(line) < 6:
                         continue
                     label_info = line.split(' ')
-                    if len(label_info) != 5:
+                    if len(label_info) < 5:
                         continue
 
                     cls = int(label_info[0])

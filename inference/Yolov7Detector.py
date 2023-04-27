@@ -16,7 +16,7 @@ class YoloV7Detector(Detector):
         if remove_result_dir and os.path.exists(result_dir):
             shutil.rmtree(result_dir)
         command = f"python {os.path.join(self.repo_path, 'detect.py')} --weights {self.model_path} " \
-              f"--img-size {img_size} --source {image} --save-txt --project {result_dir} --device {self.device}"
+              f"--img-size {img_size} --source {image} --save-txt --project {result_dir} --device {self.device} --save-conf"
         print(command)
         if nosave:
             command += " --nosave"
