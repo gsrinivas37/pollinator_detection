@@ -25,7 +25,7 @@ The motion threshold specifies how big the standard deviation of the distances o
 boxes from the median position must be in order to count the pollinator detection as real: we expect
 most of our pollinator classes to move around a lot.
 
-Call is: yolo_classify_videos.py <labels dir> <outfile path> <motion threshold> <classes> <overlap threshold>
+Call is: yolo_classify_videos.py <labels dir> <outfile path> <motion threshold> <classes> <overlap threshold> [<confidence threshold>]
 
 <motion threshold> is between 0 and 1 and represents a threshold for the average of the distances of the 
 pollinator bounding boxes from the median of these, treating the image as a unit square. If the pollinator 
@@ -36,6 +36,11 @@ the motion threshold to apply to.
 
 <overlap> is between 0 and 1 represents the relative portion of the pollinator's bounding box that must overlap 
 with an inflorescence in order to count that as pollinating, i.e. it is (area of overlap)/(area pollinator BB).
+
+[<confidence threshold>] OPTIONAL. If the classification confidence of a pollinator is above this
+threshold, then the pollinator is not required to meet the motion threshold. If this parameter is used,
+the label files must have confidences in them. This is generated using the --save-conf parameter to
+Yolo's detect.py
 """
 
 import os
@@ -119,12 +124,18 @@ def visits_inflorescence(pollinator_bbs, inflorescence_bbs, overlap_threshold):
         return True
 
     for pbb in pollinator_bbs:
+        # Throw out the confidence if any
+        pbb = pbb[:4]
 
         # Since we're computing a relative area, the image size doesn't matter
         pbb_obj = BoundingBox.from_yolo(*pbb, image_size=(640, 640))
         for ibb in inflorescence_bbs:
+            # Throw out the confidence if any
+            ibb = ibb[:4]
+
             ibb_objs = BoundingBox.from_yolo(*ibb, image_size=(640, 640))
 
+            # Conveniently, the BoundingBox class implements * as intersection area.
             intersection_area = pbb_obj * ibb_objs
             relative_overlap_area = intersection_area / pbb_obj.area
 
@@ -134,10 +145,15 @@ def visits_inflorescence(pollinator_bbs, inflorescence_bbs, overlap_threshold):
     return False
 
 
-def classify_video(labels_dir: str, motion_thresh: float = 0.2, motion_classes: list = [0, 1, 2, 4, 6, 7], overlap_thresh : float = 0.5):
+def classify_video(labels_dir: str, motion_thresh: float = 0.2, motion_classes: list = [0, 1, 2, 4, 6, 7],
+                   overlap_thresh : float = 0.5, confidence_threshold: float = 0.8):
     if not os.path.exists(labels_dir):
         print(f"ERROR: {labels_dir} does not exit")
         sys.exit(2)
+
+    using_confidence = False
+    if confidence_threshold < 1:
+        using_confidence = True
 
     vid_base_names = get_video_base_names(labels_dir)
 
@@ -165,8 +181,14 @@ def classify_video(labels_dir: str, motion_thresh: float = 0.2, motion_classes: 
                     if len(line) < 6:
                         continue
                     label_info = line.split(' ')
-                    if len(label_info) != 5:
+                    if len(label_info) < 5:
                         continue
+
+                    if using_confidence and len(label_info) != 6:
+                        print(f"ERROR:  File {fn} does not have confidences")
+                        print("Run Yolo's detect.py with the --save-conf switch.")
+                        sys.exit(3)
+
                     cls = int(label_info[0])
                     bb = [float(x) for x in label_info[1:]]
                     bbs_dict[cls].append(bb)
@@ -184,8 +206,14 @@ def classify_video(labels_dir: str, motion_thresh: float = 0.2, motion_classes: 
             if len(pbb_list) == 0:
                 continue
 
-            if cls in motion_classes:
+             # Determine the maximum confidence obtained for the pollinator class
+            max_confidence = 0
+            if using_confidence:
+                max_confidence = max([bb[4] for bb in pbb_list])
 
+            # Require the pollinator to satisfy the motion threshold unless were using confidence and
+            # the pollinator's classification confidence is >- confidence_threshold.
+            if cls in motion_classes and not (using_confidence and max_confidence >= confidence_threshold):
                 # If the pollinator motion doesn't meet the specified threshold,
                 # consider it a false hit and ignore it.
 
@@ -210,8 +238,8 @@ def classify_video(labels_dir: str, motion_thresh: float = 0.2, motion_classes: 
 
 if __name__ == "__main__":
 
-    if len(sys.argv) != 6:
-        print(f"Call is: {sys.argv[0]} <labels dir> <outfile path> <motion threshold> <classes> <overlap threshold>")
+    if len(sys.argv) != 6 and len(sys.argv) != 7:
+        print(f"Call is: {sys.argv[0]} <labels dir> <outfile path> <motion threshold> <classes> <overlap threshold> [confidence threshold]")
         sys.exit(1)
 
     [_, labels_dir, outpath, motion_thresh, motion_classes, overlap_thresh] = sys.argv
@@ -219,7 +247,13 @@ if __name__ == "__main__":
     motion_classes = [int(c) for c in motion_classes.split(',')]
     overlap_thresh = float(overlap_thresh)
 
-    csv = classify_video(labels_dir, motion_thresh, motion_classes, overlap_thresh)
+    using_confidence = False
+    confidence_threshold = 1
+    if len(sys.argv) == 7:
+        confidence_threshold = float(sys.argv[6])
+        using_confidence = True
+
+    csv = classify_video(labels_dir, motion_thresh, motion_classes, overlap_thresh, confidence_threshold)
 
     with open(outpath, "w") as fd:
         fd.write(csv)
