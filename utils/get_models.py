@@ -3,12 +3,17 @@ import os.path
 import gdown
 import zipfile
 import subprocess
-from shared import run_command
 
 YOLO_MODEL = '1_UA7aXN28TcnSALi5MwL1bDThvt7oS0Q'
 EFFICIENTDET_MODEL = '1tWAozTBGQ-Xw_oIhqhH6scGR3k9yNMNN'
 VGG_MODEL = '1sF3U9T2c8O54SiTUcHL9_acZST2pxaZJ'
 RESNET_MODEL = '1YIPPXg0YfGsxHy-ZiilKDXoISbITmhve'
+
+
+def run_command(command, cwd='.'):
+    p = subprocess.Popen(command, cwd=cwd, stdout=subprocess.PIPE, shell=True)
+    output = p.communicate()[0]
+    return output
 
 
 def download_gdrive_file(FILE_ID, output):

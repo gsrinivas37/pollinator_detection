@@ -12,6 +12,8 @@ def split_video(vidpath, output_dir, desired_fps=4, width=640, height=640):
     vcdata = cv2.VideoCapture(vidpath)
     num_frames = vcdata.get(cv2.CAP_PROP_FRAME_COUNT)
     actual_fps = vcdata.get(cv2.CAP_PROP_FPS)
+    if actual_fps == 0:
+        return []
 
     # calculate duration of the video
     seconds = num_frames / actual_fps
@@ -52,7 +54,7 @@ def split_video(vidpath, output_dir, desired_fps=4, width=640, height=640):
     for count, frame in enumerate(frame_array):
         filename = root_fn + "_" + str(count) + ".jpg"
         output_path = os.path.join(output_dir, filename)
-
-        cv2.imwrite(output_path, frame)
-        frames.append(output_path)
+        if frame is not None:
+            cv2.imwrite(output_path, frame)
+            frames.append(output_path)
     return frames

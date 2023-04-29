@@ -168,7 +168,7 @@ def get_model(model_path):
     return model
 
 
-def get_predicted_label(model, img_path, threshold=0.7):
+def get_predicted_label(model, img_path, threshold=0.4):
     label = set()
     image_np = np.array(Image.open(img_path))
 
@@ -204,6 +204,8 @@ def get_predicted_label(model, img_path, threshold=0.7):
     l_list = list(label)
     if len(l_list) == 0:
         return 6
+    if len(l_list) > 1:
+        print("Found more than one...")
     return l_list[0]
 
 
@@ -288,8 +290,12 @@ def compute_accuracy(root_dir, model_path):
             else:
                 wrong[t_lbl] = [i]
     all_keys = list(correct.keys()) + list(wrong.keys())
-    correct_cnt = len(wrong.values())
-    wrong_cnt = len(correct.values())
+    correct_cnt = 0
+    for v in correct.values():
+        correct_cnt += len(v)
+    wrong_cnt = 0
+    for v in wrong.values():
+        wrong_cnt += len(v)
     print(f"Total Accuracy is: {correct_cnt / (correct_cnt + wrong_cnt)}")
     for class_idx in (sorted(set(all_keys))):
         if class_idx in correct:
